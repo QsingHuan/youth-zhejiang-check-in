@@ -65,7 +65,7 @@ def getUserScore(accessToken: str) -> str:
     ).json()["result"]["score"]
 
 
-def join(accessToken: str, joinData: Dict[str, str]) -> None:
+def join(accessToken: str, joinData: Dict[str, str]) -> bool:
     response = requests.post(
         urls["join"],
         params={"accessToken": accessToken},
@@ -76,8 +76,10 @@ def join(accessToken: str, joinData: Dict[str, str]) -> None:
 
     if content["status"] == 200:
         print("[*] Check in success")
+        return True
     else:
-        print("[!] Error:", str(content["message"]))
+        print("[!] Error:", content["message"])
+        return False
 
 
 for name, user in config["user"].items():
@@ -94,6 +96,7 @@ for name, user in config["user"].items():
 
     print("[*] Score before checkin:", getUserScore(accessToken))
 
-    join(accessToken, joinData)
+    if not join(accessToken, joinData):
+        exit(-1)
 
     print("[*] Score after checkin:", getUserScore(accessToken))
