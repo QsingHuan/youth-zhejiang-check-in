@@ -27,19 +27,27 @@ def getToken(openId: str) -> Union[str, None]:
         return accessToken
 
 
-def getInfo(accessToken: str, nid: str, cardNo: str) -> Union[Dict[str, str], None]:
+def getInfo(
+    accessToken: str, nid: Union[str, None], cardNo: Union[str, None]
+) -> Union[Dict[str, str], None]:
     infoResponse = requests.get(
         urls["lastInfo"], params={"accessToken": accessToken}, headers=headers
     )
     userInfo = infoResponse.json()["result"]
     if userInfo is None:
         return
+
+    # if can't get nid or cardNo, then get it using config
     _nid = userInfo["nid"]
     if _nid is None:
         _nid = nid
     _cardNo = userInfo["cardNo"]
     if _cardNo is None:
         _cardNo = cardNo
+
+    # still None, config is not set
+    if _nid is None or _cardNo is None:
+        return None
 
     courseResponse = requests.get(
         urls["currentCourse"], params={"accessToken": accessToken}, headers=headers
@@ -91,7 +99,9 @@ for name, user in config["user"].items():
 
     joinData = getInfo(accessToken, nid=user["nid"], cardNo=user["cardNo"])
     if joinData is None:
-        print("[!] Error getting join data, maybe your openid is invalid")
+        print(
+            "[!] Error getting join data, maybe your openid is invalid or given nid/cardNo is invalid"
+        )
         exit(-1)
 
     print("[*] Score before checkin:", getUserScore(accessToken))
