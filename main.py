@@ -1,8 +1,7 @@
 import json
 import os
 import re
-import sys
-from typing import Dict, Union
+from typing import Dict, Optional
 
 import requests
 import toml
@@ -16,23 +15,23 @@ headers = {
 }
 
 
-def getToken(openId: str) -> Union[str, None]:
+def getToken(openId: str) -> Optional[str]:
     response = requests.get(
         url=urls["accessToken"],
         params={"appid": wxAppId, "openid": openId},
         headers={},
     )
-    accessTokenMatch = re.compile(r"(['\"])(?P<accessToken>([A-Z0-9]|-)+)(\1)").search(
-        response.text
-    )
+    accessTokenMatch = re.compile(
+        r"(['\"])(?P<accessToken>([A-Z0-9]|-)+)(\1)"
+    ).search(response.text)
     if accessTokenMatch is not None:
         accessToken = accessTokenMatch.groupdict()["accessToken"]
         return accessToken
 
 
 def getInfo(
-    accessToken: str, nid: Union[str, None], cardNo: Union[str, None]
-) -> Union[Dict[str, str], None]:
+    accessToken: str, nid: Optional[str], cardNo: Optional[str]
+) -> Optional[Dict[str, str]]:
     infoResponse = requests.get(
         urls["lastInfo"], params={"accessToken": accessToken}, headers=headers
     )
@@ -53,7 +52,9 @@ def getInfo(
         return None
 
     courseResponse = requests.get(
-        urls["currentCourse"], params={"accessToken": accessToken}, headers=headers
+        urls["currentCourse"],
+        params={"accessToken": accessToken},
+        headers=headers,
     )
     classInfo = courseResponse.json()["result"]
     if classInfo is None:
@@ -73,7 +74,9 @@ def getInfo(
 
 def getUserScore(accessToken: str) -> str:
     return requests.get(
-        url=urls["userInfo"], params={"accessToken": accessToken}, headers=headers
+        url=urls["userInfo"],
+        params={"accessToken": accessToken},
+        headers=headers,
     ).json()["result"]["score"]
 
 
@@ -95,7 +98,7 @@ def join(accessToken: str, joinData: Dict[str, str]) -> bool:
 
 
 def runCheckIn(
-    openid: str, nid: Union[str, None] = None, cardNo: Union[str, None] = None
+    openid: str, nid: Optional[str] = None, cardNo: Optional[str] = None
 ) -> None:
     accessToken = getToken(openid)
     if accessToken is None:
