@@ -1,15 +1,18 @@
 import json
+import os
 import re
+import sys
 from typing import Dict, Union
 
 import requests
 import toml
 
-config = toml.load("config.toml")
-urls = config["profile"]["url"]
-wxAppId = config["profile"]["other"]["wxAppId"]
+verbose = True
+profile = toml.load("profile.toml")
+urls = profile["profile"]["url"]
+wxAppId = profile["profile"]["other"]["wxAppId"]
 headers = {
-    "User-Agent": config["profile"]["other"]["UA"],
+    "User-Agent": profile["profile"]["other"]["UA"],
 }
 
 
@@ -58,12 +61,13 @@ def getInfo(
     classId = classInfo["id"]
     faculty = [item["title"] for item in userInfo["nodes"]]
 
-    print(
-        "[*] Course title: " + classInfo["title"],
-        "[*] Group info: " + str(faculty) + ", nid: " + _nid,
-        "[*] cardNo: " + _cardNo,
-        sep="\n",
-    )
+    if verbose:
+        print(
+            "[*] Course title: " + classInfo["title"],
+            "[*] Group info: " + str(faculty) + ", nid: " + _nid,
+            "[*] cardNo: " + _cardNo,
+            sep="\n",
+        )
     return {"course": classId, "nid": _nid, "cardNo": _cardNo}
 
 
@@ -90,14 +94,15 @@ def join(accessToken: str, joinData: Dict[str, str]) -> bool:
         return False
 
 
-for name, user in config["user"].items():
-    print("[*] Checking in for openid", name)
-    accessToken = getToken(user["openid"])
+def runCheckIn(
+    openid: str, nid: Union[str, None] = None, cardNo: Union[str, None] = None
+) -> None:
+    accessToken = getToken(openid)
     if accessToken is None:
         print("[!] Error getting accessToken, maybe your openid is invalid")
         exit(-1)
 
-    joinData = getInfo(accessToken, nid=user["nid"], cardNo=user["cardNo"])
+    joinData = getInfo(accessToken, nid=nid, cardNo=cardNo)
     if joinData is None:
         print(
             "[!] Error getting join data, maybe your openid is invalid or given nid/cardNo is invalid"
@@ -110,3 +115,17 @@ for name, user in config["user"].items():
         exit(-1)
 
     print("[*] Score after checkin:", getUserScore(accessToken))
+
+
+if "OPENID" in os.environ:
+    print("[*] Reading openid from environ", end="\n\n")
+    verbose = False
+    for openid in os.environ["OPENID"].split(","):
+        runCheckIn(openid)
+else:
+    print("[*] Reading openid from config.toml", end="\n\n")
+
+    config = toml.load("config.toml")
+    for name, user in config["user"].items():
+        print("[*] Checking in for openid", name)
+        runCheckIn(user["openid"], user["nid"], user["cardNo"])
