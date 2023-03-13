@@ -1,8 +1,10 @@
 # Youth Zhejiang Check-in
 
+Scripts for Youth-Zhejiang check-in.
+
 ## Get started
 
-### Config
+### Local Run
 
 1. Copy `config.toml.demo` to `config.toml`
 2. Get the open-id, and set the `user/username/openid` field.
@@ -10,15 +12,12 @@
    * If there is something wrong, you can fill in these fields.
 4. For multiple users, add another `[user.yyy]`.
 
-### Run
-
 ```bash
 pip install -r requirements.txt
-
 python main.py
 ```
 
-### Actions
+### GitHub Actions
 
 This tool supports GitHub Actions.
 
