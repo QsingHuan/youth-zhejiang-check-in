@@ -1,0 +1,20 @@
+name: run-check-in
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '11 15 * * 1,5'  # every Monday and Friday
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      OPENID: ${{ secrets.OPENID }}
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.8'
+        cache: 'pip'
+    - run: pip install -r requirements.txt
+    - run: python main.py
