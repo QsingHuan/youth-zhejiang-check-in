@@ -7,7 +7,10 @@ import requests
 import toml
 
 verbose = True
-profile = toml.load("profile.toml")
+# profile = toml.load("profile.toml")
+profile = toml.load(
+    os.path.dirname(os.path.realpath(__file__)) + "/profile.toml"
+)
 urls = profile["profile"]["url"]
 wxAppId = profile["profile"]["other"]["wxAppId"]
 headers = {
@@ -128,7 +131,9 @@ if "OPENID" in os.environ:
 else:
     print("[*] Reading openid from config.toml", end="\n\n")
 
-    config = toml.load("config.toml")
+    config = toml.load(
+        os.path.dirname(os.path.realpath(__file__)) + "/config.toml"
+    )
     for name, user in config["user"].items():
         print("[*] Checking in for openid", name)
         runCheckIn(user["openid"], user["nid"], user["cardNo"])
